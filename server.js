@@ -6,6 +6,7 @@ var fs = require('fs');
 var authFile = './auth.json';
 var tickLength = 500;
 var maxGameLength = 1000;
+var maxGameLengthNoPlayers = 100;
 var port = 8037;
 var mapSize = [13,13];
 var maxPlayers = 6;
@@ -97,6 +98,8 @@ function game(initialPlayers) {
 
 	var tick = function() {
 		if(++state > maxGameLength) {
+			stop();
+		} else if(playingPlayers.length == 0 && state > maxGameLengthNoPlayers) {
 			stop();
 		} else {
 			console.log(players);
