@@ -14,9 +14,9 @@ Scoring: Every time a player dies all surviving players gain one point.  If you 
 	This starts the init phase at the start of each game.
 * MAP <rows> <cols>
 	This gives the initial state of the map immediately after the init phase.  This is followd by a number of lines (stated by <rows>), each containing a number of pieces of data (stated by <cols>) which describe the map:
-	0:	Passable terrain, you may move here freely.
-	1:	Destructable terrain, you may not move here but it may be destroyed by explosions turning it into type 0 terrain.
-	2:	Indestrucable terrain, you can't move here, nor can they be destroyed.
+	- 0:	Passable terrain, you may move here freely.
+	- 1:	Destructable terrain, you may not move here but it may be destroyed by explosions turning it into type 0 terrain.
+	- 2:	Indestrucable terrain, you can't move here, nor can they be destroyed.
 * PLAYERS <num>
 	This will immediately follow the MAP message and states how many players are in the new game, this will be followed by <num> lines of data in the format:
 		<name> <row> <col>
