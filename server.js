@@ -224,7 +224,11 @@ function game(initialPlayers) {
 		if(message.substr(-1) != '\n') {
 			message += '\n';
 		}
-		clients[player].write(message);
+		try {
+			clients[player].write(message);
+		} catch(e) {
+			console.log('Warning: ' + clients[player].name + ' has disconnected');
+		}
 	};
 
 	var stop = function() {
