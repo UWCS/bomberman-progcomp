@@ -1,4 +1,4 @@
-Server is running on uwcs.co.uk:8124
+Server is running on uwcs.co.uk:8037
 All messages are sent via TCP, each message is sent followed by a newline, each piece of a message is delimited by spaces.
 
 The server is currently on a tick time of 500ms, if there are issues with this (such as latency for certain players) then it may be increased.
