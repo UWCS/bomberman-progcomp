@@ -131,7 +131,7 @@ function game(initialPlayers) {
 					players[id].status = 'DEAD';
 				});
 			}
-			currentMap.print();
+			//currentMap.print();
 			console.log('TICK ' + state);
 			broadcast('TICK ' + state);
 		}
