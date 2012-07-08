@@ -7,7 +7,8 @@ import java.io.PrintWriter;
 
 public class Template {
 	private static int port = 8124;
-	private static String host = "localhost.co.uk";
+	private static String host = "uwcs.co.uk";
+	//private static String host = "localhost";
 
 	public static void main (String[] args) throws IOException {
 		Socket serverSock = null;
