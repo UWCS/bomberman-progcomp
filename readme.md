@@ -11,32 +11,42 @@ Scoring: Every time a player dies all surviving players gain one point.  If you 
 ## Messages: ##
 ### Server -> Client: ###
 * INIT
+
 	This starts the init phase at the start of each game.
 * MAP \<rows\> \<cols\>
+
 	This gives the initial state of the map immediately after the init phase.  This is followd by a number of lines (stated by \<rows\>), each containing a number of pieces of data (stated by \<cols\>) which describe the map:
 	- 0:	Passable terrain, you may move here freely.
 	- 1:	Destructable terrain, you may not move here but it may be destroyed by explosions turning it into type 0 terrain.
 	- 2:	Indestrucable terrain, you can't move here, nor can they be destroyed.
 * PLAYERS \<num\>
+
 	This will immediately follow the MAP message and states how many players are in the new game, this will be followed by \<num\> lines of data in the format:
 		\<name\> \<row\> \<col\>
 	This shows the name of the player and their starting position in the game.  This coordinate is zero indexed.
 * TICK \<num\>
+
 	This states that a new tick has started, you can now send any action you would like to take in this tick.
 * ACTIONS \<num\>
+
 	This will be sent at the end of a tick and will be followed by \<num\> lines, each containing the name of a player and the action they took in the format \<name\> \<action\>.
 	Actions may be: UP, DOWN, LEFT, RIGHT, BOMB.
 * DEAD \<num\>
+
 	This states that \<num\> players have died this tick, this will be followed by \<num\> lines, each containing the name of a player who has died this tick.
 * END
+
 	This states that the game has ended.  The game will end when there is only one surviving player or when the turn limit has been reached.
 * SCORES \<num\>
+
 	Shows \<num\> lines in the format \<name\> \<points\> stating how many points each player gained this game.
 
 ### Client -> Server: ###
 * REGISTER \<name\> \<password\>
+
 	This states your intent to take part in a game, your name and password will be automatically registered the first time you use them, from then on you will recieve E_WRONG_PASS if the password does not mach the previously recorded one.  Note that the server has little to no security on the password so use a disposable one.
 * ACTION \<action\>
+
 	This states that you wish to make an action, valid actions are:
 	UP, DOWN, LEFT, RIGHT, BOMB
 	You may only do one action per tick.
