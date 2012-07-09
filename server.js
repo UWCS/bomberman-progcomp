@@ -1,4 +1,4 @@
-#!/home/zed0/node-v0.8.1/node
+#!/home/zed0/node-v0.8.2/node
 var net = require('net');
 var crypto = require('crypto');
 var fs = require('fs');
@@ -23,6 +23,10 @@ try {
 	}
 }
 
+process.on('uncaughtException', function (err) {
+	console.log('Caught exception: ' + err);
+});
+
 var clients = {};
 
 var currentGame = new game(Object.keys(clients));
@@ -36,17 +40,34 @@ var server = net.createServer(function(c) { //'connection' listener
 	console.log(id);
 	clients[id] = c;
 	currentGame.addPlayer(id);
+
 	c.on('end', function() {
-		console.log('client disconnected');
-		delete clients[id];
-		currentGame.removeClient(id);
 	});
 
 	c.on('data', function(data) {
-		//console.log('From client ' + id + ': ' + data.toString());
 		var cleanData = data.toString().trim();
 		currentGame.handleCommand(id, cleanData);
 	});
+
+	c.on('error', function(err) {
+		console.log('client error');
+	});
+
+	c.on('close', function() {
+		removeClient(id);
+	});
+
+	var removeClient = function(id) {
+		try{
+			clients[id].destroy();
+			delete clients[id];
+			currentGame.removeClient(id);
+			console.log('client disconnected');
+		} catch(e) {
+			console.log('Error!');
+		}
+	};
+	this.removeClient = removeClient;
 });
 
 server.listen(port, function() { //'listening' listener
@@ -227,7 +248,8 @@ function game(initialPlayers) {
 		try {
 			clients[player].write(message);
 		} catch(e) {
-			console.log('Warning: ' + clients[player].name + ' has disconnected');
+			console.log('Catch: Warning: ' + player + ' has disconnected');
+			server.removeClient(player);
 		}
 	};
 
