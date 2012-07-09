@@ -6,9 +6,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
 public class Template {
-	private static int port = 8124;
-	private static String host = "uwcs.co.uk";
-	//private static String host = "localhost";
+	private static int port = 8037;
+	//private static String host = "uwcs.co.uk";
+	private static String host = "localhost";
 
 	public static void main (String[] args) throws IOException {
 		Socket serverSock = null;
@@ -48,7 +48,7 @@ public class Template {
 
 		try {
 			//first server message is an "INIT" to start the game
-			while(fromServer.readLine()!="INIT") {System.out.println("not yet received INIT");}
+			while(!fromServer.readLine().equals("INIT")) {System.out.println("not yet received INIT");}
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.err.println("I/O error when reading from socket");
@@ -59,10 +59,18 @@ public class Template {
 		//next step is to register with the server
 		String me = "alice";
 		String myPassword = "supersekritpassword";
-		toServer.write("REGISTER " + me + " " + myPassword);
+		toServer.println("REGISTER " + me + " " + myPassword);
+
+		//next string command should be the player list
+		String nextLine = "";
+		try {
+			nextLine = fromServer.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		//next string command should be the map size
-		String nextLine = "";
 		try {
 			nextLine = fromServer.readLine();
 		} catch (IOException e) {
@@ -72,6 +80,7 @@ public class Template {
 
 		//parse the string for the coordinates and store these in a 2D array
 		String[] coords;
+		System.out.println(nextLine);
 		coords = nextLine.split(" ", 3);
 		int x = Integer.valueOf(coords[1]);
 		int y = Integer.valueOf(coords[2]);
@@ -91,13 +100,13 @@ public class Template {
 		int noPlayers = Integer.valueOf(players.substring(8));
 		int myX = -1, myY = -1;
 		//store the starting position for each player each player
-		String[][] playerPositions = new String[noPlayers][2];
+		String[][] playerPositions = new String[noPlayers][3];
 		for(int i = 0; i<noPlayers; i++) {
 			String[] thisLine = (fromServer.readLine()).split(" ", 3);
 			for(int j = 0; j < 3; j++) {
 				playerPositions[i][j] = thisLine[j];
 			}
-			if(thisLine[0].compareTo(me)==0) {
+			if(thisLine[0].equals(me)) {
 				myX = Integer.valueOf(thisLine[1]);
 				myY = Integer.valueOf(thisLine[2]);
 			}
@@ -121,29 +130,29 @@ public class Template {
 			}
 			else {
 				//check if the game is over
-				if(nextLine.compareTo("END")==0) {
+				if(nextLine.equals("END")) {
 					System.out.println("The game is over");
 					gameOver = true;
 				}
 				else {
 					//else chose a random move
 					String move = randomMove(map, myX, myY, x, y);
-					if(move.compareTo("ERROR")==0) {
+					if(move.equals("ERROR")) {
 						System.out.println("Error when choosing move");
 					}
 					else {
 						//write the move chosen to the server
-						toServer.write("ACTION " + move);
+						toServer.println("ACTION " + move);
 						//read the next line - this should be the server acknowledging your move
 						nextLine = fromServer.readLine();
-						if(nextLine.compareTo(move)!=0) {
+						if(!nextLine.equals(move)) {
 							System.out.println("Error - server did not recognise move correctly");
 						}
 						//the next messages will be the moves made by other players if any moves have been made
 						String actions = fromServer.readLine();
 						String actionCommand = actions.substring(0,6);
 						String deadCommand = actions.substring(0,3);
-						if(actionCommand.compareTo("ACTIONS")==0) {
+						if(actionCommand.equals("ACTIONS")) {
 							int noActions = Integer.valueOf(actions.substring(8));
 							//next record the moves of the other players who made moves
 							for(int i = 0; i < noActions; i++) {
@@ -152,7 +161,7 @@ public class Template {
 								updateMe(thisLine, me, myX, myY);
 							}
 						}
-						else if(deadCommand.compareTo("DEAD")==0 || ((fromServer.readLine()).substring(0,3)).compareTo("DEAD")==0) {
+						else if(deadCommand.equals("DEAD") || ((fromServer.readLine()).substring(0,3)).equals("DEAD")) {
 							int noDead = Integer.valueOf(actions.substring(5));
 							for(int i = 0; i < noDead; i++) {
 								nextLine = fromServer.readLine();
@@ -161,8 +170,8 @@ public class Template {
 						}
 						//if there were actions there may now be a list of dead players
 						nextLine = fromServer.readLine();
-						deadCommand = nextLine.substring(0,3); 
-						if(deadCommand.compareTo("DEAD")==0) {
+						deadCommand = nextLine.substring(0,3);
+						if(deadCommand.equals("DEAD")) {
 							int noDead = Integer.valueOf(actions.substring(5));
 							for(int i = 0; i < noDead; i++) {
 								nextLine = fromServer.readLine();
@@ -179,24 +188,24 @@ public class Template {
 
 	private static String randomMove(int[][] map, int currX, int currY, int x, int y) {
 		//2 possible options - move or bomb. Naive agent choses with random probability
-		int moveChoice = (int) ((int)2*(Math.floor(Math.random())));
+		int moveChoice = (int)Math.floor(2*Math.random());
 		switch(moveChoice) {
 		case(0):
 			return "BOMB";
 		case(1):
 			//need to check for walls. Choose the first direction inspected that is not a wall
-			if(currY>0 && map[currX][currY]==0) {
-				return "ACTION UP";
+			if(currY>0 && map[currX][currY-1]==0) {
+				return "UP";
 			}
-		if(currX>0 && map[currX-1][currY]==0) {
-			return "ACTION LEFT";
-		}
-		if(currX<x && map[currX+1][currY]==0) {
-			return "ACTION RIGHT";
-		}
-		if(currY<y && map[currX][currY+1]==0) {
-			return "ACTION DOWN";
-		}
+			if(currX>0 && map[currX-1][currY]==0) {
+				return "LEFT";
+			}
+			if(currX<x && map[currX+1][currY]==0) {
+				return "RIGHT";
+			}
+			if(currY<y && map[currX][currY+1]==0) {
+				return "DOWN";
+			}
 		}
 		return "ERROR";
 	}
@@ -219,6 +228,7 @@ public class Template {
 	}
 	
 	private static void updateDead(String nextLine, int noDead, String[][] playerPositions, String me, int myX) {
+		System.out.println(nextLine);
 		for(int i = 0; i < noDead; i++) {
 			String thisPlayer = playerPositions[i][0];
 			if(thisPlayer.compareTo(nextLine)==0) {
