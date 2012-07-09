@@ -188,11 +188,10 @@ public class Template {
 
 	private static String randomMove(int[][] map, int currX, int currY, int x, int y) {
 		//2 possible options - move or bomb. Naive agent choses with random probability
-		int moveChoice = (int)Math.floor(2*Math.random());
-		switch(moveChoice) {
-		case(0):
+		int moveChoice = Math.random();
+		if(moveChoice<0.15) 
 			return "BOMB";
-		case(1):
+		else {
 			//need to check for walls. Choose the first direction inspected that is not a wall
 			if(currY>0 && map[currX][currY-1]==0) {
 				return "UP";
