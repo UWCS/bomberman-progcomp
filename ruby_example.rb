@@ -3,17 +3,25 @@
 require 'socket'
 
 class Game # class to store game information
-	attr_accessor :num_players, :players_alive, :mapx, :mapy
-	def initialize
+	attr_accessor :num_players, :players_alive, :mapx, :mapy, :map, :player_x, :player_y
+	def initialize(my_name)
 		@game_over = false
+		@players = []
+		@player_x = {}
+		@player_y = {}
+		@map = Hash.new(2)
+		@bombs = Hash.new(-1) 
+		# @bombs[[x, y]] is -1 if no bomb, 1..4 is the number of turns remaining on the bomb
+		@own_name = my_name
 	end
 
 	def new_info(incoming_message) # strings relating to game info are passed here
 		content = incoming_message.split ' '
 		if incoming_message.start_with? "MAP"
-			@mapy, @mapx = content[1], content[2]
+			@map_y, @map_x = content[1], content[2]
 		elsif incoming_message.start_with? "PLAYERS"
 			@num_players, @players_alive = content[1], content[1]
+			@name_context = :players
 		elsif incoming_message.start_with? "DEAD" then
 			@players_alive -= content[1]
 			@name_context = :dead
@@ -31,7 +39,38 @@ class Game # class to store game information
 	end
 
 	def name_info(name_message)
+		content = name_message.split ' '
+		if name_context == :players then
+			@players += content[0] 
+			@player_y[content[0]] = content[1]
+			@player_x[content[0]] = content[2]
+		elsif name_context == :dead
+			@players.delete content[0]
+		elsif name_context == :actions then
+			if content[1] == "BOMB"
+				self.update_bombs(content[0])
+			elsif ["UP", "LEFT", "DOWN", "RIGHT"].include? content[1]
+				self.move(content[0], content[1])
+		end
 
+	end
+
+	def move(player, direction)
+
+	end
+
+	def update_bombs(player)
+		x = @player_x[player]
+		y = @player_y[player]
+		@bombs[[x, y]] = 4 if @bombs[[x, y]] == -1
+	end
+
+	def my_x
+		@player_x[@own_name]
+	end
+
+	def my_y
+		@player_y[@own_name]
 	end
 
 	def over?
@@ -54,12 +93,12 @@ class AI # the AI class
 	end
 end
 
-socket = TCPSocket.new 'uwcs.co.uk', 8037
-game = Game.new
-ai = AI.new
-
 player_name = "rubbish-ruby"
 password = "reallydamnsecure"
+
+socket = TCPSocket.new 'uwcs.co.uk', 8037
+game = Game.new player_name
+ai = AI.new
 
 while !game.over? do
 	line = socket.gets
