@@ -47,8 +47,8 @@ class Game # class to store game information
 		content = name_message.split ' '
 		if @name_context == :players then
 			@players.push content[0] 
-			@player_y[content[0]] = content[1]
-			@player_x[content[0]] = content[2]
+			@player_y[content[0]] = content[1].to_i
+			@player_x[content[0]] = content[2].to_i
 		elsif @name_context == :dead
 			@players.delete content[0]
 		elsif @name_context == :actions then
@@ -62,7 +62,17 @@ class Game # class to store game information
 	end
 
 	def move(player, direction)
-
+		x = @player_x[player]
+		y = @player_y[player]
+		if direction == "UP" then
+			@player_y = (y - 1) if @map[[x, y - 1]] == 0
+		elsif direction == "RIGHT"
+			@player_x = (x + 1) if @map[[x + 1, y]] == 0
+		elsif direction == "DOWN"
+			@player_y = (y + 1) if @map[[x, y + 1]] == 0
+		elsif direction == "LEFT"
+			@player_x = (x - 1) if @map[[x - 1, y]] == 0
+		end 
 	end
 
 	def update_bombs(player)
