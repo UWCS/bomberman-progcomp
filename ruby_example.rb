@@ -13,6 +13,7 @@ class Game # class to store game information
 		@bombs = Hash.new(-1) 
 		# @bombs[[x, y]] is -1 if no bomb, 1..4 is the number of turns remaining on the bomb
 		@own_name = my_name
+		@map_current_row = 0
 	end
 
 	def new_info(incoming_message) # strings relating to game info are passed here
@@ -23,15 +24,19 @@ class Game # class to store game information
 			@num_players, @players_alive = content[1], content[1]
 			@name_context = :players
 		elsif incoming_message.start_with? "DEAD" then
-			@players_alive -= content[1]
+			@players_alive.delete content[1]
 			@name_context = :dead
 		elsif incoming_message.start_with? "END"
 			@game_over = true
 		elsif incoming_message.start_with? "ACTIONS"
 			@name_context = :actions
-		elsif incoming_message.start_with? "\d"
-			@map += content.map { |s| s.to_i }
-		elsif incoming_message.start_with? "[a-z]"
+		elsif incoming_message =~ /^\d.*/ then
+			content.length.times do |i| 
+				@map[[@map_current_row, i]] = content[i]
+			end
+			@map_current_row.succ
+			p @map
+		elsif incoming_message =~ /^[a-z].*/
 			self.name_info incoming_message
 		else
 			p "zed0, fix the server! (or more likely MikeCobra fix the Ruby!)"
@@ -40,17 +45,18 @@ class Game # class to store game information
 
 	def name_info(name_message)
 		content = name_message.split ' '
-		if name_context == :players then
-			@players += content[0] 
+		if @name_context == :players then
+			@players.push content[0] 
 			@player_y[content[0]] = content[1]
 			@player_x[content[0]] = content[2]
-		elsif name_context == :dead
+		elsif @name_context == :dead
 			@players.delete content[0]
-		elsif name_context == :actions then
+		elsif @name_context == :actions then
 			if content[1] == "BOMB"
 				self.update_bombs(content[0])
 			elsif ["UP", "LEFT", "DOWN", "RIGHT"].include? content[1]
 				self.move(content[0], content[1])
+			end
 		end
 
 	end
@@ -96,18 +102,24 @@ end
 player_name = "rubbish-ruby"
 password = "reallydamnsecure"
 
-socket = TCPSocket.new 'uwcs.co.uk', 8037
-game = Game.new player_name
-ai = AI.new
+while true do
+	socket = TCPSocket.new 'uwcs.co.uk', 8037
+	game = Game.new player_name
+	ai = AI.new
 
-while !game.over? do
-	line = socket.gets
-	if line.start_with? "INIT"
-		socket.print "REGISTER #{player_name} #{password}"
-	elsif line.start_with? "MAP", "\d", "ACTIONS", "[a-z]", "PLAYERS", "DEAD", "END"
-		game.new_info line
-	elsif line.start_with? "TICK"
-		socket.print "ACTION " + (ai.response game)
+	while !game.over? do
+		line = socket.gets
+		p line
+		if line.start_with? "INIT"
+			socket.print "REGISTER #{player_name} #{password}"
+		elsif line.start_with? "MAP", "ACTIONS", "PLAYERS", "DEAD", "END"
+			game.new_info line
+		elsif line =~ /^\d.*/
+			game.new_info line
+		elsif line =~ /^[a-z].*/
+			game.new_info line
+		elsif line.start_with? "TICK"
+			socket.print "ACTION " + (ai.response game)
+		end
 	end
 end
-		
