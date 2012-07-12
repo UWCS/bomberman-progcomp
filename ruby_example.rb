@@ -28,7 +28,8 @@ class Game # class to store game information
 			@name_context = :dead
 		elsif incoming_message.start_with? "END"
 			@game_over = true
-		elsif incoming_message.start_with? "ACTIONS"
+		elsif incoming_message.start_with? "ACTIONS" then
+			tick_bombs()
 			@name_context = :actions
 		elsif incoming_message =~ /^\d.*/ then
 			content.length.times do |i| 
@@ -61,18 +62,29 @@ class Game # class to store game information
 
 	end
 
+	def tick_bombs
+		@bombs.each do |key, value| 
+			@bombs[key] = -1 if value == 1
+			@bombs[key] = value - 1 if value != -1
+		end
+	end
+
 	def move(player, direction)
 		x = @player_x[player]
 		y = @player_y[player]
 		if direction == "UP" then
-			@player_y = (y - 1) if @map[[x, y - 1]] == 0
+			@player_y = (y - 1) if can_move?([x, y - 1])
 		elsif direction == "RIGHT"
-			@player_x = (x + 1) if @map[[x + 1, y]] == 0
+			@player_x = (x + 1) if can_move?([x + 1, y])
 		elsif direction == "DOWN"
-			@player_y = (y + 1) if @map[[x, y + 1]] == 0
+			@player_y = (y + 1) if can_move?([x, y + 1])
 		elsif direction == "LEFT"
-			@player_x = (x - 1) if @map[[x - 1, y]] == 0
+			@player_x = (x - 1) if can_move?([x - 1, y])
 		end 
+	end
+
+	def can_move?(square)
+		((@map[square] == 0 ) & (@bombs[square] == -1))
 	end
 
 	def update_bombs(player)
