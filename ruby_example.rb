@@ -3,7 +3,7 @@
 require 'socket'
 
 class Game # class to store game information
-	attr_accessor :num_players, :players_alive, :mapx, :mapy, :map, :player_x, :player_y
+	attr_accessor :num_players, :players, :mapx, :mapy, :map, :player_x, :player_y
 	def initialize(my_name)
 		@game_over = false
 		@players = []
@@ -24,7 +24,6 @@ class Game # class to store game information
 			@num_players, @players_alive = content[1], content[1]
 			@name_context = :players
 		elsif incoming_message.start_with? "DEAD" then
-			@players_alive.delete content[1]
 			@name_context = :dead
 		elsif incoming_message.start_with? "END"
 			@game_over = true
@@ -104,6 +103,10 @@ class Game # class to store game information
 	def over?
 		@game_over
 	end
+
+	def alive?
+		@players.include? @own_name
+	end
 end
 
 class Array
@@ -117,7 +120,8 @@ end
 class AI # the AI class
 	# Insert Magical AI System Here
 	def response(game_state) # this is called when it's time to move, game_state contains info about the game
-		["BOMB", "UP", "LEFT", "DOWN", "RIGHT"].random_element # Don't even bother to check I can move there
+		p game_state.over?
+		["BOMB", "UP", "LEFT", "DOWN", "RIGHT"].random_element if game_state.alive? # Don't even bother to check I can move there
 	end
 end
 
@@ -141,7 +145,8 @@ while true do
 		elsif line =~ /^[a-z].*/
 			game.new_info line
 		elsif line.start_with? "TICK"
-			socket.print "ACTION " + (ai.response game)
+			response = ai.response game
+			socket.print "ACTION " + response if response != nil
 		end
 	end
 end
