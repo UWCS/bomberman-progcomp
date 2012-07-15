@@ -79,7 +79,7 @@ class Bomberman:
 				ret = ''.join([ret,c])
 		
 		# Prints all data sent from server
-		if True: # self.out:
+		if self.out:
 			print "Server: ", ret
 		
 		return ret
@@ -140,13 +140,13 @@ class Bomberman:
 		if move == "LEFT" and c != 0:
 			if self.grid[r][c-1] == "0":
 				return 1
-		elif move == "RIGHT" and c != self.cols:
+		elif move == "RIGHT" and c != (self.cols - 1):
 			if self.grid[r][c+1] == "0":
 				return 1
 		elif move == "UP" and r != 0:
 			if self.grid[r-1][c] == "0":
 				return 1
-		elif move == "DOWN" and r != self.rows:
+		elif move == "DOWN" and r != (self.rows - 1):
 			if self.grid[r+1][c] == "0":
 				return 1
 			
