@@ -152,7 +152,7 @@ class Bomberman:
 			
 		
 	def dropBomb(self, x):
-		self.bombs.append([x[0],x[1],4])
+		self.bombs.append([x[0],x[1],5])
 		
 	def updateBombs(self):
 		for i in self.bombs:
@@ -251,12 +251,8 @@ class Bomberman:
 		
 		if i == 0:
 			self.plantBomb()
-		# elif i == 1:
-			# pass
 		else:
-			self.moveToEmptySpace()			
-			
-			
+			self.moveToEmptySpace()						
 	
 	def moveToEmptySpace(self):
 		directions = ["LEFT", "UP", "RIGHT", "DOWN"]
