@@ -148,8 +148,7 @@ class Bomberman:
 				return 1
 		elif move == "DOWN" and r != (self.rows - 1):
 			if self.grid[r+1][c] == "0":
-				return 1
-			
+				return 1			
 		
 	def dropBomb(self, x):
 		self.bombs.append([x[0],x[1],5])
@@ -218,8 +217,7 @@ class Bomberman:
 			self.playerInfo[y[0]].kill()
 			if y[0] == self.account:
 				self.inGame = False
-				self.out = False
-				
+				self.out = False				
 			
 	def createMap(self, x):
 		self.rows = int(x[1])

@@ -106,19 +106,26 @@ def createMap(x):
 			return 0
 	
 	return 1
-		def action(x):
-	global players
 	
-	if x[1] == "LEFT":
-		players[x[0]][1] -= 1
-	if x[1] == "RIGHT":
-		players[x[0]][1] += 1
-	if x[1] == "UP":
-		players[x[0]][0] -= 1
-	if x[1] == "DOWN":
-		players[x[0]][0] += 1
+def action(x):
+	global players
+	r = players[x[0]][0]
+	c = players[x[0]][1]
+	
+	if x[1] == "LEFT" and c != 0:
+		if grid[r][c-1] == "0":
+			players[x[0]][1] -= 1
+	if x[1] == "RIGHT" and c != (cols - 1):
+		if grid[r][c+1] == "0":
+			players[x[0]][1] += 1
+	if x[1] == "UP" and r != 0:
+		if grid[r-1][c] == "0":
+			players[x[0]][0] -= 1
+	if x[1] == "DOWN" and r != (rows - 1):
+		if grid[r+1][c] == "0":
+			players[x[0]][0] += 1
 	if x[1] == "BOMB" and placeBomb(players[x[0]][0], players[x[0]][1]):
-		bombs.append([players[x[0]][0], players[x[0]][1], 4])
+		bombs.append([players[x[0]][0], players[x[0]][1], 4])	
 		def explode(r,c):
 	global grid
 	
