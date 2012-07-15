@@ -79,7 +79,7 @@ class Bomberman:
 				ret = ''.join([ret,c])
 		
 		# Prints all data sent from server
-		if self.out:
+		if True: # self.out:
 			print "Server: ", ret
 		
 		return ret
@@ -123,7 +123,7 @@ class Bomberman:
 				y = self.read_line().split()
 				if y[1] == "BOMB":
 					self.dropBomb(self.playerInfo[y[0]].position)
-				else:
+				elif self.isLegal(self.playerInfo[y[0]].position,y[1]):					
 					self.playerInfo[y[0]].move(y[1])
 				
 		# Simulate Bombs
@@ -132,6 +132,24 @@ class Bomberman:
 		# Perform a move
 		if self.inGame:
 			self.performTurn()
+			
+	def isLegal(self, position, move):
+		r = position[0]
+		c = position[1]
+		
+		if move == "LEFT" and c != 0:
+			if self.grid[r][c-1] == "0":
+				return 1
+		elif move == "RIGHT" and c != self.cols:
+			if self.grid[r][c+1] == "0":
+				return 1
+		elif move == "UP" and r != 0:
+			if self.grid[r-1][c] == "0":
+				return 1
+		elif move == "DOWN" and r != self.rows:
+			if self.grid[r+1][c] == "0":
+				return 1
+			
 		
 	def dropBomb(self, x):
 		self.bombs.append([x[0],x[1],4])
