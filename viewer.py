@@ -18,8 +18,14 @@ try:
 except:
 	print "Failed"
 
+def clear():
+	if sys.platform == "win32" or sys.platform == "win64":
+		os.system('CLS')
+	else:
+		os.system('clear')
+
 def display():
-	os.system('CLS')
+	clear()
 	global grid, last, explosions
 	
 	# Players
@@ -202,9 +208,10 @@ def action(x):
 			d = read_line().split()
 			players[d[0]][2] = 0
 	elif y == "STOP":
-		os.system('CLS')
+		clear()
 		last = []
 		while 1:	
 	data = read_line()
 	parse(data, s)
 	
+
