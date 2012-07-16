@@ -96,6 +96,7 @@ function game(initialPlayers) {
 		var playingPlayers = registeredPlayers.slice(0,maxPlayers);
 		playingPlayers.forEach(function(id){
 			players[id].status = 'PLAYING';
+			players[id].score = 0;
 			players[id].row = Math.floor(Math.random()*currentMap.getX()/2)*2;
 			players[id].col = Math.floor(Math.random()*currentMap.getY()/2)*2;
 			currentMap.clearCross(players[id].row, players[id].col);
@@ -140,13 +141,6 @@ function game(initialPlayers) {
 			var explosions = bombs.update();
 			var dead = evaluateExplosions(explosions);
 
-			//Clear actions:
-			Object.keys(players).forEach(function(id){
-				if(players[id].status == 'PLAYING')
-				{
-					delete players[id].action;
-				}
-			});
 
 			if(dead.length != 0) {
 				broadcast('DEAD ' + dead.length);
@@ -155,6 +149,16 @@ function game(initialPlayers) {
 					players[id].status = 'DEAD';
 				});
 			}
+
+			//Clear actions:
+			Object.keys(players).forEach(function(id){
+				if(players[id].status == 'PLAYING')
+				{
+					players[id].score += dead.length;
+					delete players[id].action;
+				}
+			});
+
 			//currentMap.print();
 			console.log('TICK ' + state);
 			broadcast('TICK ' + state);
@@ -257,8 +261,17 @@ function game(initialPlayers) {
 	};
 
 	var stop = function() {
-		console.log('STOP');
-		broadcast('STOP');
+		console.log('END');
+		broadcast('END');
+		var playingPlayers = Object.keys(players).filter(function(id){
+			return players[id].status == 'PLAYING' || players[id].status == 'DEAD';
+		});
+		console.log('SCORES ' + playingPlayers.length);
+		broadcast('SCORES ' + playingPlayers.length);
+		playingPlayers.forEach(function(player){
+			broadcast(player.name + ' ' + player.score);
+			console.log(player.name + ' ' + player.score);
+		});
 		timers.forEach(function(timer){
 			clearTimeout(timer);
 		});
