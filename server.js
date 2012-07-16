@@ -117,21 +117,24 @@ function game(initialPlayers) {
 	};
 
 	var tick = function() {
+		var playingPlayers = Object.keys(players).filter(function(id){
+			return players[id].status == 'PLAYING';
+		});
 		if(++state > maxGameLength) {
 			stop();
+		} else if(playingPlayers.length < 2) {
+			stop();
+			console.log('Stopped due to not enough players.');
 		} else {
 			console.log(players);
 
 			//Evaluate movements:
 			var moves = updatePlayers();
 			var numMoves = Object.keys(moves).length
-			if(numMoves != 0)
-			{
-				broadcast('ACTIONS ' + numMoves);
-				Object.keys(moves).forEach(function(id){
-					broadcast(players[id].name + ' ' + moves[id]);
-				});
-			}
+			broadcast('ACTIONS ' + numMoves);
+			Object.keys(moves).forEach(function(id){
+				broadcast(players[id].name + ' ' + moves[id]);
+			});
 
 			//Evaluate bombs:
 			var explosions = bombs.update();
