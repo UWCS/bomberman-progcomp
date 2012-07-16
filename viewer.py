@@ -10,6 +10,7 @@ last = []
 z = ''
 bombs = [] # row, col, timer
 explosions = set()
+scores = []
 
 
 try:
@@ -81,6 +82,12 @@ def display():
 	last = []
 	
 	#Score for last game
+	
+	if scores != []:
+		print "\nScores:"
+		for i in scores:
+			print i[0], i[1]
+		
 		
 
 def read_line(a = 1):
@@ -181,7 +188,7 @@ def action(x):
 		if i[2] == 0:
 			explodeBomb(i)
 		def parse(data, s):
-	global gameOn, grid, players, last
+	global gameOn, grid, players, last, scores
 	x = data.split()
 	y = x[0]
 	
@@ -210,6 +217,11 @@ def action(x):
 	elif y == "STOP":
 		clear()
 		last = []
+	elif y == "SCORES":
+		scores = []
+		for i in range(int(x[1])):
+			d = read_line().split()
+			scores.append(d)
 		while 1:	
 	data = read_line()
 	parse(data, s)
