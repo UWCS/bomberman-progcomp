@@ -123,7 +123,7 @@ function game(initialPlayers) {
 		});
 		if(++state > maxGameLength) {
 			stop();
-		} else if(playingPlayers.length < 2) {
+		} else if(playingPlayers.length < 1) {
 			stop();
 			console.log('Stopped due to not enough players.');
 		} else {
@@ -268,9 +268,9 @@ function game(initialPlayers) {
 		});
 		console.log('SCORES ' + playingPlayers.length);
 		broadcast('SCORES ' + playingPlayers.length);
-		playingPlayers.forEach(function(player){
-			broadcast(player.name + ' ' + player.score);
-			console.log(player.name + ' ' + player.score);
+		playingPlayers.forEach(function(id){
+			broadcast(players[id].name + ' ' + players[id].score);
+			console.log(players[id].name + ' ' + players[id].score);
 		});
 		timers.forEach(function(timer){
 			clearTimeout(timer);
