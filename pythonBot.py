@@ -85,9 +85,7 @@ class Bomberman:
 		return ret
 			
 	def parseline(self, l):
-		phrases = { "DEAD": self.dead, "INIT": self.register, "MAP": self.createMap, "PLAYERS": self.players, "REGISTERED": self.registered, "STOP": self.stop, "END": self.stop, "TICK": self.tick, "ACTIONS": self.actions, "LEFT": self.confirmation, "RIGHT": self.confirmation, "DOWN": self.confirmation, "UP": self.confirmation, "BOMB": self.confirmation } 
-		
-		# { "END": end, "SCORES": scores }
+		phrases = { "DEAD": self.dead, "INIT": self.register, "MAP": self.createMap, "PLAYERS": self.players, "REGISTERED": self.registered, "STOP": self.stop, "END": self.stop, "SCORES": self.scores, "TICK": self.tick, "ACTIONS": self.actions, "LEFT": self.confirmation, "RIGHT": self.confirmation, "DOWN": self.confirmation, "UP": self.confirmation, "BOMB": self.confirmation } 
 		
 		x = l.split()
 		phrases[x[0]](x)			
@@ -115,6 +113,11 @@ class Bomberman:
 		
 	def confirmation(self, x):
 		pass
+		
+	def scores(self, x):
+		if x[1] != "0":
+			for i in range(int(x[1])):
+				self.read_line()
 		
 	def actions(self, x):
 		# Update with last turns actions
