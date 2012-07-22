@@ -102,11 +102,11 @@ public class BombermanClient {
 			//save the map as an array
 			System.out.println("map dimensions: (" + x + ", " + y + ")");
 			int[][] map = new int[x][y];
-			for(int i = 0; i<y; i++) {
+			for(int i = 0; i < x; i++) {
 				nextLine = fromServer.readLine();
 				String[] thisLine = nextLine.split(" ");
-				for(int j = 0; j < x; j++) {
-					map[i][j] = Integer.valueOf(thisLine[j]);
+				for(int j = 0; j < y; j++) {
+					map[j][i] = Integer.valueOf(thisLine[j]);
 				}
 			}
 			printMap(map, x, y, -1, -1);
@@ -143,7 +143,7 @@ public class BombermanClient {
 			while (gameOver == false) {
 				//check if the player is still in the game
 				if(myX==-1) {
-					System.out.println("I'm not in the game");
+					System.out.println("I'm not in the game anymore");
 					nextLine = fromServer.readLine();
 					//check if the game is over
 					if(nextLine.equals(ServerCommands.END.toString())) {
