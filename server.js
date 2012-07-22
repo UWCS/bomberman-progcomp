@@ -1,4 +1,4 @@
-#!/home/zed0/node-v0.8.1/node
+#!/home/zed0/node-v0.8.2/node
 var net = require('net');
 var crypto = require('crypto');
 var fs = require('fs');
@@ -23,6 +23,10 @@ try {
 	}
 }
 
+process.on('uncaughtException', function (err) {
+	console.log('Caught exception: ' + err);
+});
+
 var clients = {};
 
 var currentGame = new game(Object.keys(clients));
@@ -36,17 +40,34 @@ var server = net.createServer(function(c) { //'connection' listener
 	console.log(id);
 	clients[id] = c;
 	currentGame.addPlayer(id);
+
 	c.on('end', function() {
-		console.log('client disconnected');
-		delete clients[id];
-		currentGame.removeClient(id);
 	});
 
 	c.on('data', function(data) {
-		//console.log('From client ' + id + ': ' + data.toString());
 		var cleanData = data.toString().trim();
 		currentGame.handleCommand(id, cleanData);
 	});
+
+	c.on('error', function(err) {
+		console.log('client error');
+	});
+
+	c.on('close', function() {
+		removeClient(id);
+	});
+
+	var removeClient = function(id) {
+		try{
+			clients[id].destroy();
+			delete clients[id];
+			currentGame.removeClient(id);
+			console.log('client disconnected');
+		} catch(e) {
+			console.log('Error!');
+		}
+	};
+	this.removeClient = removeClient;
 });
 
 server.listen(port, function() { //'listening' listener
@@ -75,6 +96,7 @@ function game(initialPlayers) {
 		var playingPlayers = registeredPlayers.slice(0,maxPlayers);
 		playingPlayers.forEach(function(id){
 			players[id].status = 'PLAYING';
+			players[id].score = 0;
 			players[id].row = Math.floor(Math.random()*currentMap.getX()/2)*2;
 			players[id].col = Math.floor(Math.random()*currentMap.getY()/2)*2;
 			currentMap.clearCross(players[id].row, players[id].col);
@@ -96,33 +118,29 @@ function game(initialPlayers) {
 	};
 
 	var tick = function() {
+		var playingPlayers = Object.keys(players).filter(function(id){
+			return players[id].status == 'PLAYING';
+		});
 		if(++state > maxGameLength) {
 			stop();
+		} else if(playingPlayers.length < 1) {
+			stop();
+			console.log('Stopped due to not enough players.');
 		} else {
 			console.log(players);
 
 			//Evaluate movements:
 			var moves = updatePlayers();
 			var numMoves = Object.keys(moves).length
-			if(numMoves != 0)
-			{
-				broadcast('ACTIONS ' + numMoves);
-				Object.keys(moves).forEach(function(id){
-					broadcast(players[id].name + ' ' + moves[id]);
-				});
-			}
+			broadcast('ACTIONS ' + numMoves);
+			Object.keys(moves).forEach(function(id){
+				broadcast(players[id].name + ' ' + moves[id]);
+			});
 
 			//Evaluate bombs:
 			var explosions = bombs.update();
 			var dead = evaluateExplosions(explosions);
 
-			//Clear actions:
-			Object.keys(players).forEach(function(id){
-				if(players[id].status == 'PLAYING')
-				{
-					delete players[id].action;
-				}
-			});
 
 			if(dead.length != 0) {
 				broadcast('DEAD ' + dead.length);
@@ -131,6 +149,16 @@ function game(initialPlayers) {
 					players[id].status = 'DEAD';
 				});
 			}
+
+			//Clear actions:
+			Object.keys(players).forEach(function(id){
+				if(players[id].status == 'PLAYING')
+				{
+					players[id].score += dead.length;
+					delete players[id].action;
+				}
+			});
+
 			//currentMap.print();
 			console.log('TICK ' + state);
 			broadcast('TICK ' + state);
@@ -224,12 +252,26 @@ function game(initialPlayers) {
 		if(message.substr(-1) != '\n') {
 			message += '\n';
 		}
-		clients[player].write(message);
+		try {
+			clients[player].write(message);
+		} catch(e) {
+			console.log('Catch: Warning: ' + player + ' has disconnected');
+			server.removeClient(player);
+		}
 	};
 
 	var stop = function() {
-		console.log('STOP');
-		broadcast('STOP');
+		console.log('END');
+		broadcast('END');
+		var playingPlayers = Object.keys(players).filter(function(id){
+			return players[id].status == 'PLAYING' || players[id].status == 'DEAD';
+		});
+		console.log('SCORES ' + playingPlayers.length);
+		broadcast('SCORES ' + playingPlayers.length);
+		playingPlayers.forEach(function(id){
+			broadcast(players[id].name + ' ' + players[id].score);
+			console.log(players[id].name + ' ' + players[id].score);
+		});
 		timers.forEach(function(timer){
 			clearTimeout(timer);
 		});
