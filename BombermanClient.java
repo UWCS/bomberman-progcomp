@@ -145,7 +145,6 @@ public class BombermanClient {
 				if(myX==-1) {
 					System.out.println("I'm not in the game");
 					nextLine = fromServer.readLine();
-					System.out.println("reading " + nextLine);
 					//check if the game is over
 					if(nextLine.equals(ServerCommands.END.toString())) {
 						System.out.println("The game is over");
