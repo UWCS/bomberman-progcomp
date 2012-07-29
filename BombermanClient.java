@@ -19,8 +19,8 @@ public class BombermanClient {
 	private static Hashtable<String, Coordinate> playerPositions = new Hashtable<String, Coordinate>();
 
 	private static int port = 8037;
-	//private static String host = "uwcs.co.uk";
-	private static String host = "localhost";
+	private static String host = "uwcs.co.uk";
+	//private static String host = "localhost";
 
 	public static void main (String[] args) throws IOException {
 		Socket serverSock = null;
