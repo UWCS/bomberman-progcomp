@@ -123,7 +123,9 @@ function game(initialPlayers) {
 		});
 		if(++state > maxGameLength) {
 			stop();
-		} else if(playingPlayers.length < 2) {
+		//comment this back in for final competition.  Sub optimal for testing.
+		//} else if(playingPlayers.length < 2) {
+		} else if(playingPlayers.length < 1) {
 			stop();
 			console.log('Stopped due to not enough players.');
 		} else {
