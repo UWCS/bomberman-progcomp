@@ -96,6 +96,7 @@ function game(initialPlayers) {
 		var playingPlayers = registeredPlayers.slice(0,maxPlayers);
 		playingPlayers.forEach(function(id){
 			players[id].status = 'PLAYING';
+			players[id].score = 0;
 			players[id].row = Math.floor(Math.random()*currentMap.getX()/2)*2;
 			players[id].col = Math.floor(Math.random()*currentMap.getY()/2)*2;
 			currentMap.clearCross(players[id].row, players[id].col);
@@ -122,7 +123,9 @@ function game(initialPlayers) {
 		});
 		if(++state > maxGameLength) {
 			stop();
-		} else if(playingPlayers.length < 2) {
+		//comment this back in for final competition.  Sub optimal for testing.
+		//} else if(playingPlayers.length < 2) {
+		} else if(playingPlayers.length < 1) {
 			stop();
 			console.log('Stopped due to not enough players.');
 		} else {
@@ -140,13 +143,6 @@ function game(initialPlayers) {
 			var explosions = bombs.update();
 			var dead = evaluateExplosions(explosions);
 
-			//Clear actions:
-			Object.keys(players).forEach(function(id){
-				if(players[id].status == 'PLAYING')
-				{
-					delete players[id].action;
-				}
-			});
 
 			if(dead.length != 0) {
 				broadcast('DEAD ' + dead.length);
@@ -155,6 +151,16 @@ function game(initialPlayers) {
 					players[id].status = 'DEAD';
 				});
 			}
+
+			//Clear actions:
+			Object.keys(players).forEach(function(id){
+				if(players[id].status == 'PLAYING')
+				{
+					players[id].score += dead.length;
+					delete players[id].action;
+				}
+			});
+
 			//currentMap.print();
 			console.log('TICK ' + state);
 			broadcast('TICK ' + state);
@@ -169,6 +175,20 @@ function game(initialPlayers) {
 			explosions.explode(pos[0], pos[1]);
 		});
 
+		var finished = false;
+		while(finished == false) {
+			finished = true;
+			for(var i=0; i<mapSize[0]; ++i) {
+				for(var j=0; j<mapSize[1]; ++j) {
+					if(explosions.getTile([i],[j]) && bombs.getTile([i],[j]) != undefined) {
+						finished = false;
+						explosions.explode(i,j);
+						bombs.removeBomb(i,j);
+					}
+				}
+			}
+		}
+
 		for(var i=0; i<mapSize[0]; ++i) {
 			for(var j=0; j<mapSize[1]; ++j) {
 				if(explosions.getTile([i],[j])) {
@@ -176,6 +196,7 @@ function game(initialPlayers) {
 				}
 			}
 		}
+
 		var map = explosions.getTiles();
 		Object.keys(players).forEach(function(id){
 			if(players[id].status == 'PLAYING') {
@@ -257,8 +278,26 @@ function game(initialPlayers) {
 	};
 
 	var stop = function() {
-		console.log('STOP');
-		broadcast('STOP');
+		console.log('END');
+		broadcast('END');
+		var playingPlayers = Object.keys(players).filter(function(id){
+			return players[id].status == 'PLAYING' || players[id].status == 'DEAD';
+		});
+		console.log('SCORES ' + playingPlayers.length);
+		broadcast('SCORES ' + playingPlayers.length);
+		playingPlayers.forEach(function(id){
+			broadcast(players[id].name + ' ' + players[id].score);
+			console.log(players[id].name + ' ' + players[id].score);
+			if(auth[players[id].name].score == undefined) {
+				auth[players[id].name].score = 0;
+			}
+			if(auth[players[id].name].games == undefined) {
+				auth[players[id].name].games = 0;
+			}
+			auth[players[id].name].score += players[id].score;
+			auth[players[id].name].games++;
+		});
+		fs.writeFileSync(authFile, JSON.stringify(auth));
 		timers.forEach(function(timer){
 			clearTimeout(timer);
 		});
@@ -337,9 +376,11 @@ function game(initialPlayers) {
 	this.handleCommand = function(id, command) {
 		var strings = command.split(' ');
 		switch(strings[0]){
+/*
 			case 'STOP':
 				stop();
 				break;
+*/
 			case 'REGISTER':
 				registerPlayer(id, strings.slice(1));
 				break;
@@ -452,6 +493,10 @@ function bombMap(mapSize) {
 		if(!bombs[posX][posY]) {
 			bombs[posX][posY] = 0;
 		}
+	};
+
+	this.removeBomb = function(posX, posY) {
+		delete bombs[posX][posY];
 	};
 
 	this.update = function() {
