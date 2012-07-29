@@ -123,7 +123,7 @@ function game(initialPlayers) {
 		});
 		if(++state > maxGameLength) {
 			stop();
-		} else if(playingPlayers.length < 1) {
+		} else if(playingPlayers.length < 2) {
 			stop();
 			console.log('Stopped due to not enough players.');
 		} else {
@@ -173,6 +173,20 @@ function game(initialPlayers) {
 			explosions.explode(pos[0], pos[1]);
 		});
 
+		var finished = false;
+		while(finished == false) {
+			finished = true;
+			for(var i=0; i<mapSize[0]; ++i) {
+				for(var j=0; j<mapSize[1]; ++j) {
+					if(explosions.getTile([i],[j]) && bombs.getTile([i],[j]) != undefined) {
+						finished = false;
+						explosions.explode(i,j);
+						bombs.removeBomb(i,j);
+					}
+				}
+			}
+		}
+
 		for(var i=0; i<mapSize[0]; ++i) {
 			for(var j=0; j<mapSize[1]; ++j) {
 				if(explosions.getTile([i],[j])) {
@@ -180,6 +194,7 @@ function game(initialPlayers) {
 				}
 			}
 		}
+
 		var map = explosions.getTiles();
 		Object.keys(players).forEach(function(id){
 			if(players[id].status == 'PLAYING') {
@@ -271,7 +286,16 @@ function game(initialPlayers) {
 		playingPlayers.forEach(function(id){
 			broadcast(players[id].name + ' ' + players[id].score);
 			console.log(players[id].name + ' ' + players[id].score);
+			if(auth[players[id].name].score == undefined) {
+				auth[players[id].name].score = 0;
+			}
+			if(auth[players[id].name].games == undefined) {
+				auth[players[id].name].games = 0;
+			}
+			auth[players[id].name].score += players[id].score;
+			auth[players[id].name].games++;
 		});
+		fs.writeFileSync(authFile, JSON.stringify(auth));
 		timers.forEach(function(timer){
 			clearTimeout(timer);
 		});
@@ -350,9 +374,11 @@ function game(initialPlayers) {
 	this.handleCommand = function(id, command) {
 		var strings = command.split(' ');
 		switch(strings[0]){
+/*
 			case 'STOP':
 				stop();
 				break;
+*/
 			case 'REGISTER':
 				registerPlayer(id, strings.slice(1));
 				break;
@@ -465,6 +491,10 @@ function bombMap(mapSize) {
 		if(!bombs[posX][posY]) {
 			bombs[posX][posY] = 0;
 		}
+	};
+
+	this.removeBomb = function(posX, posY) {
+		delete bombs[posX][posY];
 	};
 
 	this.update = function() {
