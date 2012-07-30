@@ -24,6 +24,14 @@ def clear():
 		os.system('CLS')
 	else:
 		os.system('clear')
+		
+def displayScores():
+	#Score for last game
+	
+	if scores != []:
+		print "\nScores:"
+		for i in scores:
+			print i[0], i[1]
 
 def display():
 	clear()
@@ -79,16 +87,9 @@ def display():
 	for i in last:
 		print "Server: ", i
 		
-	last = []
-	
-	#Score for last game
-	
-	if scores != []:
-		print "\nScores:"
-		for i in scores:
-			print i[0], i[1]
-		
-		
+	last = []			
+			
+	displayScores()	
 
 def read_line(a = 1):
 	ret = ''
@@ -109,7 +110,7 @@ def createMap(x):
 	global rows, cols, z	rows = int(x[1])
 	cols = int(x[2])
 	z = "-" * ((cols * 2) - 1)
-	print z
+
 	for i in range(rows):
 		y = read_line(0).split()
 		grid.append(y)
@@ -199,9 +200,15 @@ def action(x):
 	elif y == "MAP":
 		createMap(x)
 	elif y == "PLAYERS":
-		for i in range(int(x[1])):
-			d = read_line().split()
-			players[d[0]] = [int(d[1]), int(d[2]), 1]
+		if int(x[1]) != 0:
+			for i in range(int(x[1])):
+				d = read_line().split()
+				players[d[0]] = [int(d[1]), int(d[2]), 1]
+		else:		
+			gameOn = False
+			clear()	
+			print "No game in progress\n"
+			displayScores()			
 	elif y == "ACTIONS":
 		for i in range(int(x[1])):
 			d = read_line().split()
@@ -217,11 +224,17 @@ def action(x):
 	elif y == "STOP":
 		clear()
 		last = []
+		gameOn = False
 	elif y == "SCORES":
-		scores = []
-		for i in range(int(x[1])):
-			d = read_line().split()
-			scores.append(d)
+		if int(x[1]) == 0:
+			last = []	
+		else:	
+			gameOn = False
+			scores = []
+			
+			for i in range(int(x[1])):
+				d = read_line().split()
+				scores.append(d)		
 		while 1:	
 	data = read_line()
 	parse(data, s)
