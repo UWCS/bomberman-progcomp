@@ -49,8 +49,7 @@ Scoring: Every time a player dies all surviving players gain one point.  If you 
 
 	This states that you wish to make an action, valid actions are:
 	UP, DOWN, LEFT, RIGHT, BOMB
-	You may only do one action per tick.
-
+	You may only do one action per tick. The server will echo your action back to you once it has successfully received it, as can be seen in the example below. If your move is not valid you will receive E_INVALID_ACTION, if you have sent multiple actions you will receive E_TOO_MANY_ACTIONS, or if you are not registered as playing in the game you will receive E_NOT_PLAYING.
 
 ## Example game: ##
 
