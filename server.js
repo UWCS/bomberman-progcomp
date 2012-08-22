@@ -111,9 +111,11 @@ function game(initialPlayers) {
 			broadcast(players[id].name + ' ' + players[id].row + ' ' + players[id].col);
 		});
 
+
 		console.log('Connected players:');
 		console.log(players);
 		state = 0;
+		broadcast('TICK ' + state);
 		intervals.push(setInterval(tick, tickLength));
 	};
 
@@ -135,6 +137,7 @@ function game(initialPlayers) {
 			var moves = updatePlayers();
 			var numMoves = Object.keys(moves).length
 			broadcast('ACTIONS ' + numMoves);
+			console.log('ACTIONS ' + numMoves);
 			Object.keys(moves).forEach(function(id){
 				broadcast(players[id].name + ' ' + moves[id]);
 			});
